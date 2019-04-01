@@ -1,0 +1,20 @@
+{
+    "triggers": [
+        { "trigger": "!yakety", "file": "yakety.mp3", "volume": 0.2 },
+        { "trigger": "!mad", "file": "mad.mp3" },
+        { "trigger": "!roll", "file": "roll.mp3", "volume": 0.2 },
+        { "trigger": "!pose", "file": "bgm_season_summerfes02.mp3", "volume": 0.2 },
+        { "trigger": "!papaya", "file": "bgm_season_easter.mp3", "volume": 0.2 },
+        { "trigger": "!punch", "file": "punch.mp3", "volume": 0.2 },
+        { "trigger": "!leeroy", "file": "leeroy.mp3" },
+        { "trigger": "!cricket", "file": "crickets.mp3" },
+        { "trigger": "!rimshot", "file": "rimshot.mp3" },
+        { "trigger": "!meme", "file": "nicememe.mp3", "fade": 1.5 },
+        { "trigger": "!woah", "file": "woah.mp3" },
+        { "trigger": "!one", "file": "one.mp3", "volume": 0.2 },
+        { "trigger": "!sanic", "file": "sanic.mp3", "volume": 0.01 },
+        { "trigger": "!pun", "file": "glados_you_are_a_horrible_person.mp3" },
+        { "trigger": "!jeopardy", "file": "c3da4280f5b5.mp3", "volume": 0.2 },
+        { "trigger": "!omega", "file": "BGM_EX2_Omega_02.mp3", "volume": 0.2 }
+    ]
+}
