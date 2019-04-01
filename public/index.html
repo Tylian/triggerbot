@@ -8,16 +8,355 @@
     <title>TriggerBot Control</title>
 
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/open-iconic/1.1.1/font/css/open-iconic.css" crossorigin="anonymous">
+
+    <style type="text/css">
+        h1 {
+            margin-top: 1rem;
+        }
+        h1 .bot {
+            background: #7289da;
+            border-radius: 3px;
+            color: #fff;
+            font-size: 62.5%;
+            font-weight: 500;
+            margin-left: 6px;
+            padding: 1px 2px;
+            text-transform: uppercase;
+        }
+        .lead {
+            line-height: 1rem;
+        }
+        .spacer {
+            margin-bottom: 0.8rem;
+        }
+
+        #triggers .button-play {
+            color: #0D0080;
+        }
+
+        #triggers .button-edit {
+            color: #008026;
+        }
+
+        #triggers .button-delete {
+            color: #800000;
+        }
+
+        .button {
+            opacity: 0.5;
+            cursor: pointer;
+        }
+
+        .button:hover {
+            opacity: 1;
+        }
+
+        output {
+            text-align: center;
+            padding-top: 0;
+        }
+
+        .modal-delete .modal-header {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .modal-delete button.close {
+            color: white;
+        }
+
+        #error {
+            display: none;
+        }
+
+        .blink {
+            animation: blink 20s infinite;
+            opacity: 0;
+        }
+
+        @keyframes blink {
+            0%   { opacity: 0; }
+            98%  { opacity: 0; }
+            99%  { opacity: 1; }
+            100% { opacity: 0; }
+        }
+    </style>
 </head>
 
 <body>
     <div class="container">
-        <h1>Hello world!</h1>
+        <div id="header">
+            <h1>Trigger<span class="bot">Bot</span> Control</h1>
+            <p class="lead">Nice meme&trade;</p>
+        </div>
+
+        <div id="errors">
+        
+        </div>
+
+        <div id="actions" class="spacer">
+            <button class="btn btn-primary" id="new-trigger"><span class="oi" data-glyph="plus"></span> Add new</button>
+            <button class="btn btn-primary" id="skip-trigger" data-api="/api/skip"><span class="oi" data-glyph="clock"></span> Skip</button>
+            <button class="btn btn-primary" id="stop-trigger" data-api="/api/stop"><span class="oi" data-glyph="circle-x"></span> Stop</button>
+        </div>
+
+        <div id="table">
+            <table class="table table-hover table-sm" id="triggers">
+                <thead>
+                    <tr>
+                        <th>Trigger</th>
+                        <th>File</th>
+                        <th class="text-center">Volume</th>
+                        <th class="text-center">Length Clip</th>
+                        <th class="text-center">Fade</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+    <div class="modal fade" id="edit" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Edit trigger</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="form-group">
+                            <label for="trigger" class="form-control-label">Trigger:</label>
+                            <input type="text" class="form-control" name="trigger">
+                            <label class="custom-control custom-checkbox">
+                                <input type="checkbox" class="custom-control-input" name="regex">
+                                <span class="custom-control-indicator"></span>
+                                <span class="custom-control-description">Use <a href="https://en.wikipedia.org/wiki/Regular_expression" target="_blank">Regular Expression</a>?</span>
+                            </label>
+                        </div>
+                        <div class="form-group edit">
+                            <label for="file-edit" class="form-control-label">File:</label>
+                            <input type="text" class="form-control" name="file-edit" readonly>
+                        </div>
+                        <div class="form-group new">
+                            <label for="file-new" class="form-control-label">File:</label>
+                            <input type="file" name="file-new" class="form-control" accept="audio/*">
+                        </div>
+                        <div class="form-group">
+                            <label for="volume" class="form-control-label">Volume:</label>
+                            <input type="range" class="form-control" name="volume" min="0" max="100" step="1">
+                            <output for="volume" class="form-text text-muted"></output>
+                        </div>
+                        <div class="form-group">
+                            <label for="length" class="form-control-label">Play duration: (in seconds)</label>
+                            <input type="text" class="form-control" name="length">
+                            <small class="form-text text-muted">If set to "0", it'll play the entire file.</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="fade" class="form-control-label">Fade duration: (in seconds)</label>
+                            <input type="text" class="form-control" name="fade">
+                        </div>
+
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="submit-edit">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade modal-delete" id="delete" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Delete trigger</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                      </button>
+                </div>
+                <div class="modal-body">
+                    Are you sure you wish to delete that? It'll be gone forever (a really long time!).
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-success" data-dismiss="modal">Noo!!</button>
+                    <button type="button" class="btn btn-danger" id="submit-delete">Yup, delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" crossorigin="anonymous"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script type="text/javascript">
+        var triggerDefault = {
+            volume: 100,
+            fade: 0,
+            length: 0,
+            regex: false,
+            trigger: "",
+            file: "",
+        };
+
+        var triggers = {};
+
+        function updateTriggers() {
+            $("#triggers tbody").empty();
+            $.getJSON('/api/triggers', data => {
+                triggers = data;
+                for (var [id, v] of Object.entries(data)) {
+                    item = Object.assign({}, triggerDefault, v);
+                    $(`<tr>
+                        <td>${item.regex 
+                        ? `<code>${item.trigger}</code> <small class="text-muted">(Regex)</small>`
+                        : item.trigger}</td>
+                        <td><a href="/api/file/${id}" target="_blank">${item.file}</a></td>
+                        <td class="text-center">${item.volume}%</td>
+                        <td class="text-center">${item.length == 0 ? "n/a" : item.length + "s"}</td>
+                        <td class="text-center">${item.fade}s</td>
+                        <td class="text-center">
+                            <span class="oi button button-play" data-api="/api/play/${id}" data-glyph="media-play" title="Play"></span>
+                            <span class="oi button button-edit" data-id="${id}" data-glyph="pencil" title="Edit"></span>
+                            <span class="oi button button-delete" data-id="${id}" data-glyph="x" title="Delete"></span>
+                        </td>
+                    </tr>`).appendTo('#triggers tbody');
+                };
+            });
+        }
+
+        const rError = "Oops!,Oups!,Whoops!,Uh uh!,Zoinks!,Oh geez!,Aw man!,Oh wow!,Aw shit.".split(",");
+        function apiRequest(api, data) {
+            return $.ajax({
+                url: api,
+                data: data,
+                cache: false,
+                contentType: false,
+                processData: false,
+                type: 'POST'
+            }).done(data => {
+                updateTriggers();
+            }).fail(function (jqXHR, textStatus) {
+                var message = "Unknown error";
+                if(jqXHR.responseJSON != undefined) message = jqXHR.responseJSON.error;
+                var fun = rError[Math.floor(Math.random() * rError.length)];
+                $("#errors").append(
+                    $(`<div class="alert alert-danger" role="alert">
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                        <strong>${fun}</strong> An error happened! This is what we got back from the server: ${message}
+                    </div>`));
+            }).always(() => {
+                $('#submit-edit').prop("disabled", false);
+                $('#submit-delete').prop("disabled", false);
+                $('#edit').modal('hide');
+                $('#delete').modal('hide');
+            });
+        }
+
+        var rLead = ['<span class="blink">hi</span>', "woah Woah <small>woah</small>&nbsp;&nbsp;&nbsp; <b>WOAH!&nbsp;&nbsp;&nbsp; <big>WOAH</big></b><big><b><big>WOAH</big></b><big><b><big>WOAH</big></b></big></big><big><b><big><big><b><big>WOAH </big></b></big></big></b></big>", "LERO<small>YYYY</small> JEE<sup>N<small>N<small>KKI<small>NS<small>S<small>S</small></small></small></small></small></sup>", "<strong>PA PAYA</strong>", "Nice meme&trade;", "Did somebody say M\u0314\u030b\u0350\u033d\u035b\u031a\u0305\u0304\u036a\u036f\u0310\u0306\u0352\u035e\u0358\u0315\u0338\u0340\u0336\u033c\u0332\u032e\u0331\u0355\u0355\u0354\u032f\u031f\u0359\u0316\u035a\u0355O\u0312\u0301\u0344\u0364\u030c\u0310\u0357\u0305\u0308\u033d\u0303\u030b\u0344\u0307\u030a\u0351\u0352\u0350\u0311\u0342\u0311\u0341\u0337\u031b\u035f\u035d\u035c\u033c\u033b\u033c\u0345\u032a\u0349\u035a\u031f\u034d\u0359\u035a\u0348\u0320\u0332\u031e\u0316\u0318\u0317\u032b\u033aN\u0300\u030c\u0369\u030a\u0364\u0343\u0357\u0342\u033f\u0350\u034f\u035d\u0341\u0328\u035c\u035e\u032c\u032a\u034e\u0323\u0333\u031c\u0317\u032e\u0326\u032b\u032d\u0332\u034d\u032b\u0325\u0332S\u0365\u0308\u0305\u0305\u0357\u036d\u0366\u0312\u0343\u0315\u0321\u0362\u0362\u0328\u035c\u0362\u031c\u0324\u032e\u0317\u035a\u031e\u0354\u0323\u0319\u0356\u0355\u0331\u033b\u0347T\u0306\u0350\u0303\u030b\u0306\u034c\u034f\u035f\u0336\u0321\u0341\u0489\u034d\u032d\u032a\u031d\u0326\u0326\u0347\u032d\u032b\u0333\u0355\u0323\u0355\u0318\u033b\u0333\u0324\u0359\u032b\u034d\u0330E\u0363\u031a\u036d\u0301\u033f\u0366\u0366\u0340\u0340\u0334\u0335\u035d\u0361\u0360\u0348\u0316\u0347\u034e\u0349\u032d\u0316\u0319\u033a\u0324\u031c\u0359\u0316\u0348\u0326\u031fR\u030b\u030d\u0307\u0366\u033f\u0364\u0352\u0366\u0342\u0313\u0365\u0344\u036d\u0301\u0368\u0352\u0309\u0322\u0361\u035f\u0360\u0322\u0321\u0329\u0354\u0356\u0330\u0325\u0329\u031f\u0329 \u030a\u0350\u0367\u034c\u033d\u030c\u030a\u0312\u034c\u0303\u036f\u0365\u0305\u031a\u0341\u0361\u0358\u0328\u0348\u0326\u032e\u035a\u033c\u0316H\u0363\u036d\u031a\u030d\u0369\u030e\u0314\u0313\u033f\u030f\u0489\u0362\u035e\u0328\u0328\u0326\u0353\u032c\u0330\u0339\u0348\u0331\u031eU\u0303\u036f\u0364\u036d\u030d\u0346\u0368\u0313\u0346\u0311\u0308\u0321\u035e\u0328\u0334\u035e\u0331\u0326\u0330\u0318\u034d\u031e\u032b\u0317\u032b\u0345\u031e\u0330N\u0304\u0300\u0304\u0357\u0352\u0311\u036d\u0302\u034c\u035f\u0341\u0336\u0362\u034e\u0318\u0325\u031f\u0319\u0333\u033c\u0318\u0325\u0356\u032c\u0355\u0331\u0320\u0316\u0325\u0324\u0354\u0353\u031dT\u030c\u036b\u0307\u034a\u035b\u0364\u0321\u0322\u0321\u0338\u031b\u0335\u0345\u032e\u033a\u032d\u0331\u034e\u032c\u0326\u032b\u035a\u0348\u0317\u034e\u031dE\u0346\u0302\u0307\u0367\u0309\u034b\u036a\u030b\u035e\u035d\u0327\u031b\u0335\u0319\u0326\u0317\u0333\u0317\u0345R\u030b\u033d\u034a\u0304\u0305\u0300\u030f\u0346\u0344\u036c\u0308\u030e\u0314\u034a\u0313\u0361\u035f\u0362\u0315\u0337\u0358\u0353\u034d\u032f\u031e\u033a\u031f\u0325?"];
+        $(function () {
+            $(".lead").html(rLead[Math.floor(Math.random() * rLead.length)]);
+            updateTriggers();
+
+            $(document.body).on("click", "[data-api]", function() {
+                $.get($(this).data("api"));
+            });
+
+            $("#triggers").on("click", ".button-delete", function () {
+                var id = $(this).data("id");
+                var modal = $("#delete");
+                modal.data("id", id);
+
+                modal.modal();
+            });
+
+
+            $("#triggers").on("click", ".button-edit", function () {
+                var id = $(this).data("id");
+                var trigger = Object.assign({}, triggerDefault, triggers[id]);
+                var modal = $("#edit");
+
+                modal.data('id', id);
+                modal.find('.modal-body [name="trigger"]').val(trigger.trigger);
+                modal.find('.modal-body [name="regex"]').prop("checked", trigger.regex);
+                modal.find('.modal-body [name="file-edit"]').val(trigger.file);
+                modal.find('.modal-body [name="volume"]').val(trigger.volume);
+                modal.find('.modal-body [name="length"]').val(trigger.length);
+                modal.find('.modal-body [name="fade"]').val(trigger.fade);
+
+                modal.find('.new').hide();
+                modal.find('.edit').show();
+
+                modal.find('.modal-body [name="volume"]').trigger("input");
+
+                modal.modal();
+            });
+
+            $("#new-trigger").on("click", function () {
+                var modal = $("#edit");
+
+                modal.data('id', '');
+                modal.find('.modal-body [name="trigger"]').val("");
+                modal.find('.modal-body [name="regex"]').prop("checked", false);
+                modal.find('.modal-body [name="file-new"]').val("");
+                modal.find('.modal-body [name="volume"]').val(100);
+                modal.find('.modal-body [name="length"]').val(0);
+                modal.find('.modal-body [name="fade"]').val(0);
+
+                modal.find('.new').show();
+                modal.find('.edit').hide();
+
+                modal.find('.modal-body [name="volume"]').trigger("input");
+
+                modal.modal();
+            });
+
+            $('input[type="range"]').on("input", e => {
+                var $target = $(e.target);
+                $('output[for="' + $target.prop("name") + '"]').text($target.val() + "%");
+            });
+
+            $('#submit-edit').click(e => {
+                $('#submit-edit').prop("disabled", true);
+
+                var modal = $('#edit');
+                var id = modal.data('id');
+
+                var data = new FormData();
+                if (id != '')
+                    data.append('id', id);
+                else
+                    data.append('file', modal.find('.modal-body [name="file-new"]')[0].files[0])
+
+                data.append('trigger', modal.find('.modal-body [name="trigger"]').val());
+                data.append('regex', modal.find('.modal-body [name="regex"]').is(':checked'));
+                data.append('volume', modal.find('.modal-body [name="volume"]').val());
+                data.append('length', modal.find('.modal-body [name="length"]').val());
+                data.append('fade', modal.find('.modal-body [name="fade"]').val());
+
+                apiRequest(id != "" ? 'api/update' : 'api/create', data);
+            });
+
+            $('#submit-delete').click(e => {
+                $('#submit-delete').prop("disabled", true);
+
+                var modal = $('#delete');
+                var id = modal.data('id');
+
+                var data = new FormData();
+                data.append('id', id);
+
+                apiRequest('api/delete', data);
+            });
+        });
+    </script>
 </body>
 
 </html>

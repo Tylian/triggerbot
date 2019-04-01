@@ -1,0 +1,6 @@
+{
+  "token": "Discord Bot OAuth token",
+  "websocket": "ws://127.0.0.1:10501/OnLogLineRead",
+  "ui_port": 3000,
+  "master": "User snowflake"
+}

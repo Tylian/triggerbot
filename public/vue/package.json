@@ -1,0 +1,31 @@
+{
+  "name": "triggerbot-control",
+  "description": "TriggerBot Control",
+  "version": "1.0.0",
+  "author": "Tylian <immatyger@gmail.com>",
+  "private": true,
+  "scripts": {
+    "dev": "cross-env NODE_ENV=development rollup -wc rollup-dev.config.js",
+    "build": "cross-env NODE_ENV=production rollup -c rollup-prod.config.js"
+  },
+  "dependencies": {
+    "postcss": "^6.0.12",
+    "purecss": "^1.0.0",
+    "rollup-plugin-uglify": "^2.0.1",
+    "rollup-pluginutils": "^2.0.1",
+    "vue": "^2.4.4"
+  },
+  "devDependencies": {
+    "autoprefixer": "^7.1.4",
+    "cross-env": "^5.0.5",
+    "cssnano": "^3.10.0",
+    "rollup-plugin-buble": "^0.16.0",
+    "rollup-plugin-livereload": "^0.6.0",
+    "rollup-plugin-node-resolve": "^3.0.0",
+    "rollup-plugin-postcss": "^0.5.5",
+    "rollup-plugin-replace": "^2.0.0",
+    "rollup-plugin-sass": "^0.5.3",
+    "rollup-plugin-vue": "^2.5.0",
+    "vue-template-compiler": "^2.4.4"
+  }
+}

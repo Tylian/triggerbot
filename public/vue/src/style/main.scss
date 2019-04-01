@@ -1,0 +1,51 @@
+a {
+    text-decoration: none;
+    color: #007bff;
+    &:hover {
+        text-decoration: underline;
+    }
+}
+.pure-menu-link:hover {
+    text-decoration: none;
+}
+
+.text-center {
+    text-align: center;
+}
+
+/* Global styles */
+#app {
+    margin: 0 auto;
+    padding: 0 2em;
+    max-width: 1140px;
+    margin-bottom: 50px;
+    line-height: 1.6em;
+}
+
+.menu-actions .pure-menu-link {
+    &:hover, &:focus {
+        color: black;
+    }
+}
+
+.menu-actions .pure-menu-children {
+    border: 1px solid #d9d9d9;
+    border-radius: 4px;
+}
+
+.table-borderless, .table-borderless th, .table-borderless td {
+    border: 0;
+}
+
+/* Button styles */
+.button-success,
+.button-danger {
+    color: white;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+}
+.button-success {
+    background: rgb(28, 184, 65);
+}
+.button-danger {
+    background: rgb(202, 60, 60);
+}

@@ -1,29 +1,22 @@
 const TriggerBot = require('./lib/TriggerBot');
 const WebServer = require('./lib/WebServer');
-const jsonfile = require("jsonfile");
 const fs = require('fs');
 
-const client = new TriggerBot();
-client.login('MTgxOTA3NDIyNzQxMjY2NDMy.D3sxPA.Qbq5-ugUlbzx1l5Y_DsbbyoFai8');
-// client.openSocket('ws://localhost:10501/OnLogLineRead');
+const config = require('./config.json');
 
-const server = WebServer.listen(3000, () => {
-    console.log(`WebServer listening on port ${server.address().port}!`);
+const client = new TriggerBot(config.master);
+client.login(config.token);
+client.openSocket(config.websocket);
+
+const server = WebServer.listen(config['ui-port'], () => {
+  console.log(`WebServer listening on port ${server.address().port}!`);
 });
 
-fs.watchFile("./triggers.json", addTriggers);
+WebServer.on('play', (id) => { client.play(id); });
+WebServer.on('reload', () => { client.reload(); });
+WebServer.on('stop', () => { client.destroyQueue(); });
+WebServer.on('skip', () => { client.skipQueue(); });
 
-function addTriggers() {
-    client.clearTriggers();
-    client.addTrigger({ "trigger": "!stop", "command": "stop" });
+fs.watchFile('./triggers.json', () => { client.reload(); });
 
-    jsonfile.readFile("./triggers.json", function (err, obj) {
-        if (err) return console.error("Error parsing JSON, not reloaded...");
-        for (let trigger of Object.values(obj.triggers)) {
-            client.addTrigger(trigger);
-        }
-        console.log("Done reloading triggers");
-    });
-}
-
-addTriggers();
+client.reload();

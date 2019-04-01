@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>TriggerBot Control</title>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/open-iconic/1.1.1/font/css/open-iconic.css" crossorigin="anonymous">
+    <style type="text/css">
+        .spacer {
+            margin-bottom: 0.8rem;
+        }
+         h1 {
+            margin-top: 1rem;
+        }
+        h1 .bot {
+            background: #7289da;
+            border-radius: 3px;
+            color: #fff;
+            font-size: 62.5%;
+            font-weight: 500;
+            margin-left: 6px;
+            padding: 1px 2px;
+            text-transform: uppercase;
+        }
+        .lead {
+            line-height: 1rem;
+        }
+        .button {
+            opacity: 0.5;
+            cursor: pointer;
+        }
+        .button:hover {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div id="app"></div>
+    
+    <template id="app_template">
+        <div class="container">
+                <modal v-show="showModal"></modal>
+                
+                <header>
+                    <h1>Trigger<span class="bot">Bot</span> Control</h1>
+                    <random-title class="lead">
+                        <p>Nice meme&trade;</p>
+                        <p>woah Woah <small>woah</small>&nbsp;&nbsp;&nbsp; <b>WOAH!&nbsp;&nbsp;&nbsp; <big>WOAH</big></b><big><b><big>WOAH</big></b><big><b><big>WOAH</big></b></big></big><big><b><big><big><b><big>WOAH </big></b></big></big></b></big></p>
+                        <p>Did somebody say M̸̶̼̲̮̱͕͕͔̯̟͙̖͚͕̔̋͐̽͛̅̄ͪͯ̐̆͒̀̚͘̕͞Ơ̷̼̻̼̪͉͚̟͍͙͚͈̠̲̞̖̘̗̫̺̒́̈́ͤ̌̐͗̅̈̽̃̋̈́̇̊͑͒͐̑͂̑́͟͜͝ͅǸ̌ͩ̊ͤ̓͗͂̿͐͏̨̬̪͎̣̳̜̗̮̦̫̭̲͍̫̥̲́͜͝͞S̡̨̜̤̮̗͚̞͔̣̙͖͕̱̻͇ͥ̈̅̅͗ͭͦ̒̓̕͢͢͜͢T̆͐̃̋̆͌͏̶̡́͟҉͍̭̪̝̦̦͇̭̫̳͕̣͕̘̻̳̤͙̫͍̰E̴̵͈̖͇͎͉̭̖̙̺̤̜͙̖͈̦̟ͣͭ́̿ͦͦ̀̀̚͝͡͠R̢̢̡̩͔͖̰̥̩̟̩̋̍̇ͦ̿ͤ͒ͦ͂̓ͥ̈́ͭ́ͨ͒̉͟͡͠ ̨͈̦̮͚̼̖̊͐ͧ͌̽̌̊̒͌̃ͯͥ̅́̚͘͡Hͣͭ̍ͩ̎̔̓̿̏̚҉̨̨̦͓̬̰̹͈̱̞͢͞Ũ̴̡̨̱̦̰̘͍̞̫̗̫̞̰ͯͤͭ̍͆ͨ̓͆̑̈͞͞ͅN̶͎̘̥̟̙̳̼̘̥͖̬͕̱̠̖̥̤͔͓̝̄̀̄͗͒̑ͭ̂͌́͟͢Ť̸̵̡̢̡̛̮̺̭̱͎̬̦̫͚͈̗͎̝ͫ̇͊͛ͤͅȨ̵̛̙̦̗̳̗͆̂̇ͧ̉͋ͪ̋͞͝ͅR̷͓͍̯̞̺̟̥̋̽͊̄̅̀̏͆̈́ͬ̈̎̔͊̓̕͘͟͢͡?</p>
+                    </random-title>
+                </header>
+
+                <section v-if="errors.length > 0" id="errors"></section>
+                
+                <section id="actions" class="spacer">
+                    <button class="btn btn-primary"><icon name="plus"></icon> Add new</button>
+                    <button class="btn btn-primary" @click="skip"><icon name="clock"></icon> Skip</button>
+                    <button class="btn btn-primary" @click="stop"><icon name="circle-x"></icon> Stop</button>
+                </section>
+        
+                <section id="table">
+                    <table class="table table-hover table-sm" id="triggers">
+                        <thead>
+                            <tr>
+                                <th>Trigger</th>
+                                <th>File</th>
+                                <th class="text-center">Volume</th>
+                                <th class="text-center">Length Clip</th>
+                                <th class="text-center">Fade</th>
+                                <th class="text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr is="trigger-row" v-for="(item, id) in triggers" :key="id" :id="id" :item="item"></tr>
+                        </tbody>
+                    </table>
+                </section>
+            </div>
+    </template>
+
+    <template id="icon_template">
+        <span class="oi" :data-glyph="name"></span>
+    </template>
+
+    <template id="row_template">
+        <tr>
+            <td v-if="item.regex"><code>{{item.trigger}}</code> <small class="text-muted">(Regex)</small></td>
+            <td v-if="!item.regex">{{item.trigger}}</td>
+            <td><a :href="'/api/file/' + id" target="_blank">{{item.file}}</a></td>
+            <td class="text-center">{{item.volume}}%</td>
+            <td class="text-center">{{item.length == 0 ? "n/a" : item.length + "s"}}</td>
+            <td class="text-center">{{item.fade}}s</td>
+            <td class="text-center">
+                <icon name="media-play" class="button" @click.native="play(id)"></icon>
+                <icon name="pencil" class="button"></icon>
+                <icon name="x" class="button"></icon>
+            </td>
+        </tr>
+    </template>
+
+    <template id="modal_template">
+        <div class="modal fade">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title"><slot name="title">Modal title</slot></h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <slot name="body">
+                            Woohoo, you're reading this text in a modal!
+                        </slot>
+                    </div>
+                    <div class="modal-footer">
+                        <slot name="footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                            <button type="button" class="btn btn-primary">OK</button>
+                        </slot>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.4.0/vue.js"></script>
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script type="text/javascript">
+        Vue.component('icon', {
+            'props': ['name'],
+            'template': '#icon_template'
+        });
+
+        Vue.component('modal', {
+            'template': '#modal_template'
+        });
+
+        Vue.component('trigger-row', {
+            'props': ['item', 'id'],
+            'template': '#row_template',
+            methods: {
+                play(id) {
+                    fetch(new Request('/api/play/' + id));
+                }
+            }
+        });
+
+        Vue.component('random-title', {
+            data() {
+                return {
+                    random: Math.random()
+                };
+            },
+            render(createElement) {
+                let slots = this.$slots.default.filter($slot => $slot.tag == "p");
+                return createElement("p", [slots[Math.floor(this.random * slots.length)]]);
+            }
+        });
+
+        var app = new Vue({
+            el: '#app',
+            template: '#app_template',
+            data: {
+                triggers: {},
+                errors: [],
+                showModal: false,
+            },
+            created() {
+                this.updateTriggers();
+            },
+            methods: {
+                stop() {
+                    fetch(new Request('/api/stop'));
+                },
+                skip() {
+                    fetch(new Request('/api/skip'));
+                },
+                updateTriggers() {
+                    fetch(new Request('/api/triggers'))
+                        .then(response => response.json())
+                        .then(data => {
+                            const def = { volume: 100, fade: 0, length: 0, regex: false };
+                            for(let [id, item] of Object.entries(data)) {
+                                let trigger = Object.assign({}, def, item);
+                                this.$set(this.triggers, id, trigger);
+                            }
+                        });
+                }
+            }
+        });
+    </script>
+</body>
+</html>
