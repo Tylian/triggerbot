@@ -1,2 +1,8 @@
-.vscode
+# node
 node_modules
+
+# app specific
+sounds/*
+!sounds/.gitkeep
+triggers.json
+config.json
