@@ -1,6 +1,9 @@
 # node
 node_modules
 
+# editor
+.vscode
+
 # app specific
 sounds/*
 !sounds/.gitkeep
