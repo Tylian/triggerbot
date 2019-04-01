@@ -2,7 +2,7 @@
 node_modules
 
 # editor
-.vscode
+.vscode/**/*
 
 # app specific
 sounds/*
